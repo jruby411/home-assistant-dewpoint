@@ -2,7 +2,7 @@
 Calculate Dew Point based on temperature and humidity sensors
 
 For more details about this platform, please refer to the documentation
-https://github.com/ehn/home-assistant-dewpoint
+https://github.com/elwing00/home-assistant-dewpoint
 """
 
 import logging
@@ -20,6 +20,7 @@ from homeassistant.helpers.entity import Entity, async_generate_entity_id
 from homeassistant.helpers.event import async_track_state_change
 import homeassistant.helpers.config_validation as cv
 
+from homeassistant.components.sensor import SensorEntity
 from homeassistant.components.sensor import (
     ENTITY_ID_FORMAT, PLATFORM_SCHEMA)
 
@@ -49,7 +50,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         async_add_entities([DewPointSensor(hass, device, friendly_name, entity_dry_temp, entity_rel_hum)])
 
 
-class DewPointSensor(Entity):
+class DewPointSensor(SensorEntity):
 
     def __init__(self, hass, device_id, name, entity_dry_temp, entity_rel_hum):
         """Initialize the sensor."""
@@ -58,6 +59,7 @@ class DewPointSensor(Entity):
         self.entity_id = async_generate_entity_id(
             ENTITY_ID_FORMAT, device_id, hass=hass
         )
+        self._unique_id = device_id
         self._name = name
 
         self._entity_dry_temp = entity_dry_temp
@@ -82,6 +84,11 @@ class DewPointSensor(Entity):
             EVENT_HOMEASSISTANT_START, sensor_startup)
 
     @property
+    def unique_id(self):
+        """Return the unique_id of the sensor."""
+        return self._unique_id
+        
+    @property
     def name(self):
         """Return the name of the sensor."""
         return self._name
@@ -99,7 +106,7 @@ class DewPointSensor(Entity):
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement."""
-        return TEMP_CELSIUS
+        return TEMP_FAHRENHEIT
 
     @callback
     def get_dry_temp(self, entity):
@@ -118,10 +125,15 @@ class DewPointSensor(Entity):
             return None
 
         # convert to celsius if necessary
-        if unit == TEMP_FAHRENHEIT:
-            return util.temperature.fahrenheit_to_celsius(temp)
-        if unit == TEMP_CELSIUS:
-            return temp
+#        if unit == TEMP_FAHRENHEIT:
+#            return util.temperature.fahrenheit_to_celsius(temp)
+#        if unit == TEMP_CELSIUS:
+#            return temp
+    #convert to Fahrenheit
+         if unit == TEMP_CELSIUS:
+             return util.temperature.celsius_to_fahrenheit(temp)
+         if unit == TEMP_FAHRENHEIT:
+             return temp
         _LOGGER.error("Temp sensor %s has unsupported unit: %s (allowed: %s, "
                       "%s)", state.entity_id, unit, TEMP_CELSIUS,
                       TEMP_FAHRENHEIT)
