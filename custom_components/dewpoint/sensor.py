@@ -130,10 +130,10 @@ class DewPointSensor(SensorEntity):
 #        if unit == TEMP_CELSIUS:
 #            return temp
     #convert to Fahrenheit
-         if unit == TEMP_CELSIUS:
-             return util.temperature.celsius_to_fahrenheit(temp)
-         if unit == TEMP_FAHRENHEIT:
-             return temp
+        if unit == TEMP_CELSIUS:
+            return util.temperature.celsius_to_fahrenheit(temp)
+        if unit == TEMP_FAHRENHEIT:
+            return temp
         _LOGGER.error("Temp sensor %s has unsupported unit: %s (allowed: %s, "
                       "%s)", state.entity_id, unit, TEMP_CELSIUS,
                       TEMP_FAHRENHEIT)
