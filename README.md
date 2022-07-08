@@ -3,7 +3,7 @@
 # Dew Point Calculator for Home Assistant
 [Home Assistant](https://www.home-assistant.io/) custom component to calculate dew point using temperature and humidity sensors based on [PsychroLib](https://github.com/psychrometrics/psychrolib).
 
-This repository was [forked](https://github.com/miguelangel-nubla/home-assistant-dewpoint) due to inactivity of the original creator and maintaner.
+This repository was [forked](https://github.com/ehn/home-assistant-dewpoint) for updates.
 
 ## Installation
 Use [HACS](https://hacs.xyz/) with this custom repository or copy `custom_components/` to your HA configuration.
