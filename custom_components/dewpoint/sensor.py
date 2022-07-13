@@ -19,7 +19,7 @@ from homeassistant.const import (
 from homeassistant.helpers.entity import Entity, async_generate_entity_id
 from homeassistant.helpers.event import async_track_state_change
 import homeassistant.helpers.config_validation as cv
-
+# from homeassistant.util.temperature import convert as convert_temperature
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.components.sensor import (
     ENTITY_ID_FORMAT, PLATFORM_SCHEMA)
@@ -134,6 +134,7 @@ class DewPointSensor(SensorEntity):
             return util.temperature.celsius_to_fahrenheit(temp)
         if unit == TEMP_FAHRENHEIT:
             return temp
+        #  return convert_temperature(temp, TEMP_CELCIUS, TEMP_FAHRENHEIT)
         _LOGGER.error("Temp sensor %s has unsupported unit: %s (allowed: %s, "
                       "%s)", state.entity_id, unit, TEMP_CELSIUS,
                       TEMP_FAHRENHEIT)
