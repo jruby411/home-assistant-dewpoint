@@ -4,6 +4,7 @@ Calculate Dew Point based on temperature and humidity sensors
 For more details about this platform, please refer to the documentation
 https://github.com/elwing00/home-assistant-dewpoint
 """
+from __future__ import annotations
 
 import logging
 import asyncio
@@ -12,17 +13,31 @@ import voluptuous as vol
 
 
 from homeassistant import util
-from homeassistant.core import callback
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorEntityDescription,
+    SensorStateClass,
+    PLATFORM_SCHEMA,
+    ENTITY_ID_FORMAT
+)
+
 from homeassistant.const import (
-    TEMP_CELSIUS, TEMP_FAHRENHEIT, ATTR_FRIENDLY_NAME, ATTR_ENTITY_ID, CONF_SENSORS,
-    EVENT_HOMEASSISTANT_START, ATTR_UNIT_OF_MEASUREMENT, ATTR_TEMPERATURE)
+    TEMP_CELSIUS, 
+    TEMP_FAHRENHEIT, 
+    ATTR_FRIENDLY_NAME, 
+    ATTR_ENTITY_ID, 
+    CONF_SENSORS,
+    EVENT_HOMEASSISTANT_START, 
+    ATTR_TEMPERATURE,
+    ATTR_UNIT_OF_MEASUREMENT
+)
+
+from homeassistant.core import callback
 from homeassistant.helpers.entity import Entity, async_generate_entity_id
 from homeassistant.helpers.event import async_track_state_change
 import homeassistant.helpers.config_validation as cv
-# from homeassistant.util.temperature import convert as convert_temperature
-from homeassistant.components.sensor import SensorEntity
-from homeassistant.components.sensor import (
-    ENTITY_ID_FORMAT, PLATFORM_SCHEMA)
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -59,9 +74,11 @@ class DewPointSensor(SensorEntity):
         self.entity_id = async_generate_entity_id(
             ENTITY_ID_FORMAT, device_id, hass=hass
         )
-        self._unique_id = device_id
         self._name = name
-
+        self._attr_native_unit_of_measurement=TEMP_CELSIUS
+        self._attr_device_class=SensorDeviceClass.TEMPERATURE
+        self._attr_state_class=SensorStateClass.MEASUREMENT
+        self._attr_icon='mdi:thermometer-lines'
         self._entity_dry_temp = entity_dry_temp
         self._entity_rel_hum = entity_rel_hum
 
@@ -83,31 +100,6 @@ class DewPointSensor(SensorEntity):
         self.hass.bus.async_listen_once(
             EVENT_HOMEASSISTANT_START, sensor_startup)
 
-    @property
-    def unique_id(self):
-        """Return the unique_id of the sensor."""
-        return self._unique_id
-        
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-        return self._name
-
-    @property
-    def icon(self):
-        """Return the icon of the sensor."""
-        return 'mdi:thermometer-lines'
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-        return self._state
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
-        return TEMP_FAHRENHEIT
-
     @callback
     def get_dry_temp(self, entity):
         state = self.hass.states.get(entity)
@@ -125,16 +117,10 @@ class DewPointSensor(SensorEntity):
             return None
 
         # convert to celsius if necessary
-#        if unit == TEMP_FAHRENHEIT:
-#            return util.temperature.fahrenheit_to_celsius(temp)
-#        if unit == TEMP_CELSIUS:
-#            return temp
-    #convert to Fahrenheit
-        if unit == TEMP_CELSIUS:
-            return util.temperature.celsius_to_fahrenheit(temp)
         if unit == TEMP_FAHRENHEIT:
+            return util.temperature.fahrenheit_to_celsius(temp)
+        if unit == TEMP_CELSIUS:
             return temp
-        #  return convert_temperature(temp, TEMP_CELCIUS, TEMP_FAHRENHEIT)
         _LOGGER.error("Temp sensor %s has unsupported unit: %s (allowed: %s, "
                       "%s)", state.entity_id, unit, TEMP_CELSIUS,
                       TEMP_FAHRENHEIT)
@@ -173,7 +159,7 @@ class DewPointSensor(SensorEntity):
 
         return hum/100
 
-    async def async_update(self):
+    async def async_update(self) -> None:
         """Fetch new state data for the sensor."""
 
         dry_temp = self.get_dry_temp(self._entity_dry_temp)
@@ -183,4 +169,4 @@ class DewPointSensor(SensorEntity):
             import psychrolib
             psychrolib.SetUnitSystem(psychrolib.SI)
             TDewPoint = psychrolib.GetTDewPointFromRelHum(dry_temp, rel_hum)
-            self._state = round(TDewPoint, 1)
+            self._attr_native_value = round(TDewPoint, 1)
