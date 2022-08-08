@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import logging
 import asyncio
+import math
 
 import voluptuous as vol
 
