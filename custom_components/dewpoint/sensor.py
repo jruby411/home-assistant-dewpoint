@@ -3,6 +3,10 @@ Calculate Dew Point based on temperature and humidity sensors
 
 For more details about this platform, please refer to the documentation
 https://github.com/elwing00/home-assistant-dewpoint
+
+JSR modified to calculate DepPoint instead of using the psychrolib python lib
+I used the code from: https://github.com/alf-scotland/ha-dewpoint
+
 """
 from __future__ import annotations
 
@@ -42,6 +46,9 @@ import homeassistant.helpers.config_validation as cv
 _LOGGER = logging.getLogger(__name__)
 
 CONF_REL_HUM = 'rel_hum'
+
+MAGNUS_K2 = 17.62
+MAGNUS_K3 = 243.12
 
 SENSOR_SCHEMA = vol.Schema({
     vol.Optional(ATTR_FRIENDLY_NAME): cv.string,
@@ -156,8 +163,27 @@ class DewPointSensor(SensorEntity):
             _LOGGER.error("Humidity sensor %s is out of range: %s %s",
                           state.entity_id, hum, "(allowed: 0-100%)")
             return None
+        """ equation needs hum in percent so I took out hum/100 """
+        return hum
 
-        return hum/100
+    def calc_dewpoint(self, tempC, rel_hum):
+        """Calculate the dew point for the indoor air."""
+        # Use magnus approximation to calculate the dew point
+        alpha = MAGNUS_K2 * tempC / (MAGNUS_K3 + tempC)
+        beta = MAGNUS_K2 * MAGNUS_K3 / (MAGNUS_K3 + tempC)
+
+        if rel_hum == 0:
+            dew_point = -50  # not defined, set very low
+        else:
+            dew_point = (
+                MAGNUS_K3
+                * (alpha + math.log(rel_hum / 100.0))
+                / (beta - math.log(rel_hum / 100.0))
+            )
+
+        dew_point = round(dew_point, 1)
+        _LOGGER.debug("Dew point: %f %s", self._state, self.native_unit_of_measurement)
+        return dew_point
 
     async def async_update(self) -> None:
         """Fetch new state data for the sensor."""
@@ -166,7 +192,12 @@ class DewPointSensor(SensorEntity):
         rel_hum = self.get_rel_hum(self._entity_rel_hum)
         
         if dry_temp is not None and rel_hum is not None:
-            import psychrolib
-            psychrolib.SetUnitSystem(psychrolib.SI)
-            TDewPoint = psychrolib.GetTDewPointFromRelHum(dry_temp, rel_hum)
-            self._attr_native_value = round(TDewPoint, 1)
+            #import psychrolib
+            #psychrolib.SetUnitSystem(psychrolib.SI)
+            #TDewPoint = psychrolib.GetTDewPointFromRelHum(dry_temp, rel_hum)
+            #self._attr_native_value = round(TDewPoint, 1)
+            
+            # Don't set the state directly
+            # This should take care of unit conversion on the state of the sensor.
+            # The calculated value returned is in Celcius
+            self._attr_native_value = self.calc_dewpoint(dry_temp, rel_hum)
