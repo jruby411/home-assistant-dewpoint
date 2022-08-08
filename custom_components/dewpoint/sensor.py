@@ -81,6 +81,7 @@ class DewPointSensor(SensorEntity):
         self.entity_id = async_generate_entity_id(
             ENTITY_ID_FORMAT, device_id, hass=hass
         )
+        self._unique_id = device_id
         self._name = name
         self._attr_native_unit_of_measurement=TEMP_CELSIUS
         self._attr_device_class=SensorDeviceClass.TEMPERATURE
@@ -106,6 +107,16 @@ class DewPointSensor(SensorEntity):
 
         self.hass.bus.async_listen_once(
             EVENT_HOMEASSISTANT_START, sensor_startup)
+    
+    @property
+    def unique_id(self):
+        """Return the unique_id of the sensor."""
+        return self._unique_id
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return self._name
 
     @callback
     def get_dry_temp(self, entity):
@@ -192,11 +203,6 @@ class DewPointSensor(SensorEntity):
         rel_hum = self.get_rel_hum(self._entity_rel_hum)
         
         if dry_temp is not None and rel_hum is not None:
-            #import psychrolib
-            #psychrolib.SetUnitSystem(psychrolib.SI)
-            #TDewPoint = psychrolib.GetTDewPointFromRelHum(dry_temp, rel_hum)
-            #self._attr_native_value = round(TDewPoint, 1)
-            
             # Don't set the state directly
             # This should take care of unit conversion on the state of the sensor.
             # The calculated value returned is in Celcius
