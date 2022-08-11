@@ -39,4 +39,4 @@ Key | Type | Required | Default | Description
 
 ***
 
-[license-shield]: https://img.shields.io/github/license/jruby411/home-assistant-dewpoint.svg?style=for-the-badge
+[license-shield]: https://img.shields.io/github/license/jruby411/home-assistant-dewpoint.svg?style=flat
