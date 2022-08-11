@@ -1,9 +1,9 @@
 {
   "domain": "dewpoint",
   "name": "Dew Point Calculator",
-  "documentation": "https://github.com/elwing00/home-assistant-dewpoint",
-  "issue_tracker": "https://github.com/elwing00/home-assistant-dewpoint/issues",
-  "codeowners": ["@miguelangel-nubla", "@lultimouomo", "@ehn", "@elwing00"],
-  "requirements": ["psychrolib==2.1.0"],
-  "version": "0.0.1"
+  "documentation": "https://github.com/jruby411/home-assistant-dewpoint",
+  "issue_tracker": "https://github.com/jruby411/home-assistant-dewpoint/issues",
+  "codeowners": ["@miguelangel-nubla", "@lultimouomo", "@ehn", "@elwing00", "@alf-scotland", "@jruby411"],
+  "iot_class": "calculated",
+  "version": "0.0.2"
 }
