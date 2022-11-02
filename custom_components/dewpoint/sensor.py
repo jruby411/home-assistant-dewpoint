@@ -18,6 +18,7 @@ import voluptuous as vol
 
 
 from homeassistant import util
+from homeassistant.util.unit_conversion import TemperatureConverter
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -137,7 +138,7 @@ class DewPointSensor(SensorEntity):
 
         # convert to celsius if necessary
         if unit == TEMP_FAHRENHEIT:
-            return util.temperature.fahrenheit_to_celsius(temp)
+            return TemperatureConverter.convert(temp, TEMP_FAHRENHEIT, TEMP_CELSIUS)
         if unit == TEMP_CELSIUS:
             return temp
         _LOGGER.error("Temp sensor %s has unsupported unit: %s (allowed: %s, "
