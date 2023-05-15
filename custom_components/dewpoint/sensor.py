@@ -125,15 +125,18 @@ class DewPointSensor(SensorEntity):
         state = self.hass.states.get(entity)
 
         if state is None or state.state is None or state.state == 'unknown':
-            _LOGGER.error('Unable to read temperature from unavailable sensor: %s', state.entity_id)
+            _LOGGER.error('Unable to read temperature from unknown sensor: %s', state.entity_id)
             return
+        if state.state == 'unavailable':
+            # just return. hopefully it will come back or I will notice there is a problem.
+            return None
 
         unit = state.attributes.get(ATTR_UNIT_OF_MEASUREMENT)
         temp = util.convert(state.state, float)
 
         if temp is None:
-            _LOGGER.error("Unable to parse temperature sensor %s with state:"
-                          " %s", state.entity_id, state.state)
+            _LOGGER.error("Unable to parse temperature from sensor %s with state: %s",
+                          state.entity_id, state.state)
             return None
 
         # convert to celsius if necessary
@@ -156,14 +159,17 @@ class DewPointSensor(SensorEntity):
         state = self.hass.states.get(entity)
 
         if state is None or state.state is None or state.state == 'unknown':
-            _LOGGER.error('Unable to read relative humidity from unavailable sensor: %s', state.entity_id)
+            _LOGGER.error('Unable to read relative humidity from unknown sensor: %s', state.entity_id)
             return
+        if state.state == 'unavailable':
+            # just return. hopefully it will come back or I will notice there is a problem.
+            return None
 
         unit = state.attributes.get(ATTR_UNIT_OF_MEASUREMENT)
         hum = util.convert(state.state, float)
 
         if hum is None:
-            _LOGGER.error("Unable to read relative humidity from sensor %s, state: %s",
+            _LOGGER.error("Unable to parse relative humidity from sensor %s, state: %s",
                           state.entity_id, state.state)
             return None
 
