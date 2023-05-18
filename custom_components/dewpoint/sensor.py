@@ -29,14 +29,13 @@ from homeassistant.components.sensor import (
 )
 
 from homeassistant.const import (
-    TEMP_CELSIUS, 
-    TEMP_FAHRENHEIT, 
+    UnitOfTemperature,
     ATTR_FRIENDLY_NAME, 
     ATTR_ENTITY_ID, 
     CONF_SENSORS,
     EVENT_HOMEASSISTANT_START, 
     ATTR_TEMPERATURE,
-    ATTR_NATIVE_UNIT_OF_MEASUREMENT
+    ATTR_UNIT_OF_MEASUREMENT
 )
 
 from homeassistant.core import callback
@@ -85,7 +84,7 @@ class DewPointSensor(SensorEntity):
         )
         self._unique_id = device_id
         self._name = name
-        self._attr_native_unit_of_measurement=TEMP_CELSIUS
+        self._attr_native_unit_of_measurement=UnitOfTemperature.CELSIUS
         self._attr_device_class=SensorDeviceClass.TEMPERATURE
         self._attr_state_class=SensorStateClass.MEASUREMENT
         self._attr_icon='mdi:thermometer-lines'
@@ -131,7 +130,7 @@ class DewPointSensor(SensorEntity):
             # just return. hopefully it will come back or I will notice there is a problem.
             return None
 
-        unit = state.attributes.get(ATTR_NATIVE_UNIT_OF_MEASUREMENT)
+        unit = state.attributes.get(ATTR_UNIT_OF_MEASUREMENT)
         temp = util.convert(state.state, float)
 
         if temp is None:
@@ -139,18 +138,21 @@ class DewPointSensor(SensorEntity):
                           state.entity_id, state.state)
             return None
 
-        return unit_conversion.TemperatureConverter(temp)
+        # convert to celsius if necessary
+        if unit == UnitOfTemperature.FAHRENHEIT:
+            return unit_conversion.TemperatureConverter(temp,unit,UnitOfTemperature.CELSIUS)
+        if unit == UnitOfTemperature.CELSIUS:
+            return temp
 
-        # dead code below here! HASS should take care of this with the above return??
-        #_LOGGER.error("Temp sensor %s has unsupported unit: %s (allowed: %s, "
-        #              "%s)", state.entity_id, unit, TEMP_CELSIUS,
-        #              TEMP_FAHRENHEIT)
+        _LOGGER.error("Temp sensor %s has unsupported unit: %s (allowed: %s, "
+                      "%s)", state.entity_id, unit, UnitOfTemperature.CELSIUS,
+                      UnitOfTemperature.FAHRENHEIT)
 
-        #try:
-        #    return self.hass.config.units.temperature(
-        #        float(state.state), unit)
-        #except ValueError as ex:
-        #    _LOGGER.error('Unable to read temperature from sensor: %s', ex)
+        try:
+            return self.hass.config.units.temperature(
+                float(state.state), unit)
+        except ValueError as ex:
+            _LOGGER.error('Unable to read temperature from sensor: %s', ex)
 
     @callback
     def get_rel_hum(self, entity):
@@ -163,7 +165,7 @@ class DewPointSensor(SensorEntity):
             # just return. hopefully it will come back or I will notice there is a problem.
             return None
 
-        unit = state.attributes.get(ATTR_NATIVE_UNIT_OF_MEASUREMENT)
+        unit = state.attributes.get(ATTR_UNIT_OF_MEASUREMENT)
         hum = util.convert(state.state, float)
 
         if hum is None:
