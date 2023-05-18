@@ -140,7 +140,7 @@ class DewPointSensor(SensorEntity):
 
         # convert to celsius if necessary
         if unit == UnitOfTemperature.FAHRENHEIT:
-            return unit_conversion.TemperatureConverter(temp,unit,UnitOfTemperature.CELSIUS)
+            return TemperatureConverter.convert(temp,unit,UnitOfTemperature.CELSIUS)
         if unit == UnitOfTemperature.CELSIUS:
             return temp
 
