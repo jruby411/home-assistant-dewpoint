@@ -207,8 +207,9 @@ class DewPointSensor(SensorEntity):
     async def async_update(self) -> None:
         """Fetch new state data for the sensor."""
 
-        dry_temp = self.get_dry_temp(self._entity_dry_temp)
-        rel_hum = self.get_rel_hum(self._entity_rel_hum)
+        if self._entity_dry_temp is not None and self._entity_rel_hum is not None:
+            dry_temp = self.get_dry_temp(self._entity_dry_temp)
+            rel_hum = self.get_rel_hum(self._entity_rel_hum)
         
         if dry_temp is not None and rel_hum is not None:
             # Don't set the state directly
