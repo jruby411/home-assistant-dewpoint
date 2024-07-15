@@ -38,9 +38,9 @@ from homeassistant.const import (
     ATTR_UNIT_OF_MEASUREMENT
 )
 
-from homeassistant.core import callback
+from homeassistant.core import Event, EventStateChangedData, callback
 from homeassistant.helpers.entity import Entity, async_generate_entity_id
-from homeassistant.helpers.event import async_track_state_change
+from homeassistant.helpers.event import async_track_state_change_event
 import homeassistant.helpers.config_validation as cv
 
 
@@ -94,14 +94,18 @@ class DewPointSensor(SensorEntity):
     async def async_added_to_hass(self):
         """Register callbacks."""
         @callback
-        def sensor_state_listener(entity, old_state, new_state):
+        def sensor_state_listener(event: Event[EventStateChangedData]) -> None:
+            entity = event.data["entity_id"]
+            old_state = event.data["old_state"]
+            new_state = event.data["new_state"]
+
             """Handle device state changes."""
             self.async_schedule_update_ha_state(True)
 
         @callback
         def sensor_startup(event):
             """Update template on startup."""
-            async_track_state_change(
+            async_track_state_change_event(
                 self.hass, [self._entity_dry_temp, self._entity_rel_hum], sensor_state_listener)
 
             self.async_schedule_update_ha_state(True)
